@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>ScanFileFolder</Title>
+      <Shortcut>ScanFileFolder</Shortcut>
+      <Description>Quét file trong folder bằng cmd</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[DECLARE  @PathName       VARCHAR(256)='d:\'  , 
+         @CMD            VARCHAR(512) 
+ 
+IF OBJECT_ID('tempdb..#CommandShell') IS NOT NULL
+    DROP TABLE #CommandShell
+
+CREATE TABLE #CommandShell ( Line VARCHAR(512)) 
+ 
+   SET @CMD = 'DIR ' + @PathName + ' /TC' --file +date
+    --test
+    --SET @PathName ='"F:\1. Documentation\2017 Decision ME\"'
+
+   SET @PathName ='"\\vnmsrv300\Grpfiles\Document Control\Current Method sheet\QD24XX (Marco Polo)"'
+    SET @CMD = 'DIR ' + @PathName + ' /s'  -- tìm tất cả các file
+
+ 
+ 
+   PRINT @CMD -- test & debug
+   -- DIR F:\data\download\microsoft /TC
+ 
+   -- MSSQL insert exec - insert table from stored procedure execution
+   INSERT INTO #CommandShell 
+   EXEC MASTER..xp_cmdshell   @CMD 
+
+   -- Delete lines not containing filename
+   DELETE 
+   FROM   #CommandShell 
+   WHERE  Line NOT LIKE '[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9] %' 
+   OR Line LIKE '%<DIR>%'
+   OR Line is null
+
+SELECT 
+    
+   CAST(Rtrim(LTRIM(substring(Line,39,Len(Line))))AS NVARCHAR(200)) as file_Names   
+   ,CAST(LEFT(Line,20) as DATETIME)AS file_date
+   ,Rtrim(LTRIM(substring(Line,21,18))) as file_size
+  ,Line File_details 
+from #CommandShell 
+  ORDER BY file_date DESC]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
